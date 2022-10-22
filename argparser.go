@@ -206,7 +206,7 @@ func getTaggedReflectField(obj interface{}, tag string) (reflect.Value, error) {
 	rVal := reflect.ValueOf(obj).Elem()
 	rType := reflect.TypeOf(obj).Elem()
 	for i := 0; i < rType.NumField(); i++ {
-		fieldTags := strings.Split(rType.FieldByIndex([]int{i}).Tag.Get("flag"), "|")
+		fieldTags := strings.Split(rType.FieldByIndex([]int{i}).Tag.Get("arg"), "|")
 		for _, f := range fieldTags {
 			if f == tag {
 				return rVal.FieldByIndex([]int{i}), nil
