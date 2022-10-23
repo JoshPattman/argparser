@@ -34,10 +34,7 @@ func (a *ArgParser) RemainingArgs() []string {
 	return a.args[i:]
 }
 
-func (a *ArgParser) NextOptions(defaults interface{}) error {
-	if reflect.ValueOf(defaults).Kind() != reflect.Ptr {
-		return fmt.Errorf("defaults struct must be pointer to struct")
-	}
+func (a *ArgParser) NextOptions(defaults ...interface{}) error {
 	lastMultipart := false
 	lastMultipartTag := ""
 
@@ -121,8 +118,8 @@ func toStrings(s string) []string {
 	return ss
 }
 
-func setTaggedValue(obj interface{}, tag string, v string) error {
-	f, err := getTaggedReflectField(obj, tag)
+func setTaggedValue(objs []interface{}, tag string, v string) error {
+	f, err := getTaggedReflectField(objs, tag)
 	if err != nil {
 		return err
 	}
@@ -194,22 +191,24 @@ func parseAndCast[T any](x string) (T, error) {
 	return y, nil
 }
 
-func isTaggedValueMultipart(obj interface{}, tag string) (bool, error) {
-	f, err := getTaggedReflectField(obj, tag)
+func isTaggedValueMultipart(objs []interface{}, tag string) (bool, error) {
+	f, err := getTaggedReflectField(objs, tag)
 	if err != nil {
 		return false, err
 	}
 	return f.Type() != reflect.TypeOf(false), nil
 }
 
-func getTaggedReflectField(obj interface{}, tag string) (reflect.Value, error) {
-	rVal := reflect.ValueOf(obj).Elem()
-	rType := reflect.TypeOf(obj).Elem()
-	for i := 0; i < rType.NumField(); i++ {
-		fieldTags := strings.Split(rType.FieldByIndex([]int{i}).Tag.Get("arg"), "|")
-		for _, f := range fieldTags {
-			if f == tag {
-				return rVal.FieldByIndex([]int{i}), nil
+func getTaggedReflectField(objs []interface{}, tag string) (reflect.Value, error) {
+	for _, obj := range objs {
+		rVal := reflect.ValueOf(obj).Elem()
+		rType := reflect.TypeOf(obj).Elem()
+		for i := 0; i < rType.NumField(); i++ {
+			fieldTags := strings.Split(rType.FieldByIndex([]int{i}).Tag.Get("arg"), "|")
+			for _, f := range fieldTags {
+				if f == tag {
+					return rVal.FieldByIndex([]int{i}), nil
+				}
 			}
 		}
 	}
